@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   View,
@@ -5,22 +6,46 @@ import {
   Button,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Image,
   Dimensions,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import for AsyncStorage
 
-export default function Login({ navigation }) {
+export class Client {
+  constructor(username, phoneNumber, email, password) {
+    this.username = username;
+    this.phoneNumber = phoneNumber;
+    this.email = email;
+    this.password = password;
+  }
+
+  async saveToStorage() {
+    try {
+      const clientData = JSON.stringify(this); // Convert object to JSON string
+      await AsyncStorage.setItem("@ClientData", clientData); // Store data with key
+      console.log("Client data saved successfully!");
+    } catch (error) {
+      console.error("Error saving client data:", error);
+    }
+  }
+}
+
+export default function SignUp({ navigation }) {
+  const [username, setUsername] = useState(""); // Use state for input fields
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleCreate = async () => {
+    if (!username || !phoneNumber || !email || !password) {
       alert("Please fill in all fields.");
       return;
-    } else {
-      navigation.navigate("Dashboard");
     }
+
+    const client = new Client(username, phoneNumber, email, password); // Create Client instance
+    await client.saveToStorage(); // Save data to AsyncStorage
+
+    navigation.navigate("Login"); // Navigate to Login screen (optional)
   };
 
   return (
@@ -32,8 +57,29 @@ export default function Login({ navigation }) {
             style={styles.facebookInn}
           />
         </View>
-
         <View style={styles.input}>
+          <View style={styles.inputBoxes}>
+            <Text style={styles.requireMsg}>Username:</Text>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter username"
+              id="username"
+              value={username}
+              onChangeText={setUsername}
+            />
+          </View>
+
+          <View style={styles.inputBoxes}>
+            <Text style={styles.requireMsg}>Phone number:</Text>
+            <TextInput
+              style={styles.inputBox}
+              placeholder="Enter Phone Number"
+              id="PhoneNumber"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+            />
+          </View>
+
           <View style={styles.inputBoxes}>
             <Text style={styles.requireMsg}>Email:</Text>
             <TextInput
@@ -44,6 +90,7 @@ export default function Login({ navigation }) {
               onChangeText={setEmail}
             />
           </View>
+
           <View style={styles.inputBoxes}>
             <Text style={styles.requireMsg}>Password:</Text>
             <TextInput
@@ -55,13 +102,7 @@ export default function Login({ navigation }) {
               onChangeText={setPassword}
             />
           </View>
-          <Button title="Login" onPress={handleLogin} />
-          <TouchableOpacity
-            onPress={() => navigation.navigate("SignUp")}
-            style={styles.createButton}
-          >
-            <Text style={styles.createButtonText}>Create Account</Text>
-          </TouchableOpacity>
+          <Button title="Create" onPress={handleCreate} />
         </View>
       </View>
     </View>
@@ -71,6 +112,11 @@ export default function Login({ navigation }) {
 const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
+  requireMsg: {
+    color: "white",
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
   facebookOut: {
     width: width * 0.2,
     height: width * 0.2,
@@ -81,19 +127,6 @@ const styles = StyleSheet.create({
   facebookInn: {
     width: "100%",
     height: "100%",
-  },
-  createButton: {
-    backgroundColor: "green",
-    marginTop: height * 0.02,
-    color: "white",
-    textAlign: "center",
-    fontFamily: "Tahoma",
-    height: height * 0.06,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  createButtonText: {
-    color: "white",
   },
   container: {
     alignItems: "center",
@@ -123,10 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     color: "#8a8a8a",
     padding: 8,
-  },
-  requireMsg: {
-    color: "white",
-    textTransform: "uppercase",
-    marginBottom: 8,
+    width: "100%",
   },
 });
+
